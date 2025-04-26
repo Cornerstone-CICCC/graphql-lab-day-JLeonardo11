@@ -14,7 +14,8 @@ const app = express()
 // Create Apollo server
 const apolloServer = new ApolloServer({
   typeDefs,
-  resolvers
+  resolvers,
+  csrfPrevention: false,
 })
 
 // Start Server

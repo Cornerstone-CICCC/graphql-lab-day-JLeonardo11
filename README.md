@@ -48,7 +48,7 @@
     - getOrders
     - createOrder(productId, customerId)
     - updateOrder(id, data)
-    - deleteOrder(id)
+    - deleteOrder(id)a
 
     ---
 

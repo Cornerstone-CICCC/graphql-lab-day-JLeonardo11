@@ -1,33 +1,93 @@
+import customerController from "../controllers/customer.controller"
+import orderController from "../controllers/order.controller"
+import productController from "../controllers/product.controller"
+import { ICustomer } from "../types/customer"
+import { IOrder } from "../types/order"
+import { IProduct } from "../types/product"
+
 // Finish the resolvers
 export const resolvers = {
   Query: {
-    products: () => {},
-    customers: () => {},
-    orders: () => {},
-    getProductById: () => {},
-    getCustomerById: () => {},
+    products: async () => {
+      return await productController.getProduct()
+    },
+    customers: async () => {
+      return await customerController.getCustomers()
+    },
+    orders: async () => {
+      return await orderController.getOrders()
+    },
+    getProductById: async (_: unknown, { id }: { id: string }) => {
+      return await productController.findProduct(id)
+    },
+    getCustomerById: async (_: unknown, { id }: { id: string }) => {
+      return await customerController.findCustomer(id)
+    },
   },
   Product: {
-    customers: () => {}
+    customers: async (parent: { id: string }) => {
+      const costumers = await customerController.getCustomers()
+      const orders = await orderController.getOrders()
+      const productOrder = orders.filter(o => String(o.productId) === parent.id)
+      const customerProduct = productOrder.map((product) => {
+        return costumers.find(c => String(c._id) === String(product.customerId))
+      })
+
+      
+      return customerProduct
+ 
+    }
   },
   Customer: {
-    products: () => {}
+    products: async (parent: { id: string }) => {
+      const products = await productController.getProduct()
+      const orders = await orderController.getOrders()
+      const customerOrder = orders.filter(o => String(o.customerId) === parent.id)
+      const customerProduct = customerOrder.map((customer) => {
+        return products.find(c => String(c._id) === String(customer.productId))
+      })
+      
+      return customerProduct
+
+    }
   },
   Order: {
-    product: () => {},
-    customer: () => {}
+    product: async (parent: { productId: string }) => {
+      return await productController.findProduct(parent.productId)
+    },
+    customer: async (parent: { customerId: string }) => {
+      return  await customerController.findCustomer(parent.customerId)
+    }
   },
   Mutation: {
-    addProduct: () => {},
-    editProduct: () => {},
-    removeProduct: () => {},
+    addProduct: async (_: unknown, { productName, productPrice }: Omit<IProduct, 'id'>) => {
+      return await productController.createProduct({ productName, productPrice })
+    },
+    editProduct: async (_: unknown, { id, productName, productPrice }: IProduct) => {
+      return await productController.updateProduct(id, { productName, productPrice })
+    },
+    removeProduct: async (_: unknown, { id }: {id: string}) => {
+      return await productController.deleteProduct(id)
+    },
 
-    addCustomer: () => {},
-    editCustomer: () => {},
-    removeCustomer: () => {},
+    addCustomer: async (_: unknown, { firstName, lastName, email }: Omit<ICustomer, 'id'>) => {
+      return await customerController.createCustomer({ firstName, lastName, email })
+    },
+    editCustomer: async (_: unknown, { id, firstName, lastName, email }: ICustomer) => {
+      return await customerController.updateCustomer(id, { firstName, lastName, email })
+    },
+    removeCustomer: async (_: unknown, { id }: {id: string}) => {
+      return await customerController.deleteCustomer(id)
+    },
 
-    addOrder: () => {},
-    editOrder: () => {},
-    removeOrder: () => {}
+    addOrder: async (_: unknown, { productId, customerId }: Omit<IOrder, 'id'>) => {
+      return await orderController.createOrder({ productId, customerId })
+    },
+    editOrder: async (_: unknown, { id, productId, customerId }: IOrder) => {
+      return await orderController.updateOrder(id, { productId, customerId })
+    },
+    removeOrder: async (_: unknown, { id }: {id: string}) => {
+      return await orderController.deleteOrder(id)
+    },
   }
 }
